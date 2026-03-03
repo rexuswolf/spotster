@@ -5,11 +5,11 @@ function ResultsScreen({ results, totalScore, onPlayAgain }) {
   const percentage = Math.round((totalScore / maxScore) * 100)
 
   const getRank = (percentage) => {
-    if (percentage >= 90) return { emoji: '🏆', title: 'Music Master', color: '#FFD700' }
-    if (percentage >= 75) return { emoji: '🎵', title: 'Melody Maestro', color: '#C0C0C0' }
-    if (percentage >= 60) return { emoji: '🎸', title: 'Rock Star', color: '#CD7F32' }
-    if (percentage >= 40) return { emoji: '🎤', title: 'Karaoke King', color: '#8B4513' }
-    return { emoji: '🎧', title: 'Music Fan', color: '#696969' }
+    if (percentage >= 90) return { emoji: '🏆', title: 'Music Master', color: 'var(--spotify-green)' }
+    if (percentage >= 75) return { emoji: '🎵', title: 'Melody Maestro', color: 'var(--spotify-green)' }
+    if (percentage >= 60) return { emoji: '🎸', title: 'Rock Star', color: 'var(--spotify-green)' }
+    if (percentage >= 40) return { emoji: '🎤', title: 'Karaoke King', color: 'var(--spotify-green)' }
+    return { emoji: '🎧', title: 'Music Fan', color: 'var(--spotify-green)' }
   }
 
   const rank = getRank(percentage)
