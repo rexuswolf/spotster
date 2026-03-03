@@ -30,6 +30,13 @@ function App() {
     setTotalScore(0)
   }
 
+  const handleBackToMenu = () => {
+    setGameState('start')
+    setQuizData(null)
+    setResults([])
+    setTotalScore(0)
+  }
+
   return (
     <div className="App">
       <header>
@@ -40,7 +47,11 @@ function App() {
       <main>
         {gameState === 'start' && <StartScreen onStart={handleStartQuiz} />}
         {gameState === 'playing' && (
-          <QuizScreen quizData={quizData} onComplete={handleQuizComplete} />
+          <QuizScreen
+            quizData={quizData}
+            onComplete={handleQuizComplete}
+            onBack={handleBackToMenu}
+          />
         )}
         {gameState === 'results' && (
           <ResultsScreen

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './QuizScreen.css'
 import { submitAnswer, searchSongSuggestions, searchArtistSuggestions } from '../services/spotify'
 
-function QuizScreen({ quizData, onComplete }) {
+function QuizScreen({ quizData, onComplete, onBack }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [yearGuess, setYearGuess] = useState('')
   const [nameGuess, setNameGuess] = useState('')
@@ -182,6 +182,12 @@ function QuizScreen({ quizData, onComplete }) {
 
   return (
     <div className="quiz-screen">
+      <div className="quiz-header">
+        <button className="back-btn" onClick={onBack}>
+          ← Back to Menu
+        </button>
+      </div>
+
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         <span className="progress-text">

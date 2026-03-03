@@ -6,6 +6,30 @@
   margin: 0 auto;
 }
 
+.quiz-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.back-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--spotify-text);
+  border: 1px solid var(--spotify-light-gray);
+  border-radius: 500px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: var(--spotify-gray);
+  color: var(--spotify-white);
+  transform: translateX(-2px);
+}
+
 .progress-bar {
   position: relative;
   height: 8px;
