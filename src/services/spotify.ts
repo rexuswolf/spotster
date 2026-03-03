@@ -211,6 +211,49 @@ class SpotifyClient {
   }
 
   /**
+   * Search for song name suggestions
+   */
+  async searchSongSuggestions(query: string): Promise<string[]> {
+    if (!query || query.length < 2) return []
+
+    const data = await this.searchSong(query)
+
+    if (!data.tracks?.items) return []
+
+    // Get unique song names
+    const suggestions = data.tracks.items
+      .map(track => this.cleanSongName(track.name))
+      .filter((name, index, self) => self.indexOf(name) === index)
+      .slice(0, 10)
+
+    return suggestions
+  }
+
+  /**
+   * Search for artist name suggestions
+   */
+  async searchArtistSuggestions(query: string): Promise<string[]> {
+    if (!query || query.length < 2) return []
+
+    const token = await this.getAccessToken()
+
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=10`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    if (!response.ok) return []
+
+    const data = await response.json()
+
+    if (!data.artists?.items) return []
+
+    return data.artists.items.map((artist: { name: string }) => artist.name)
+  }
+
+  /**
    * Generate a random quiz with songs from specified genres and years
    */
   private async generateRandomQuiz(
@@ -387,5 +430,7 @@ const spotifyClient = new SpotifyClient()
 
 export const startQuiz = spotifyClient.startQuiz.bind(spotifyClient)
 export const submitAnswer = spotifyClient.submitAnswer.bind(spotifyClient)
+export const searchSongSuggestions = spotifyClient.searchSongSuggestions.bind(spotifyClient)
+export const searchArtistSuggestions = spotifyClient.searchArtistSuggestions.bind(spotifyClient)
 
 export default spotifyClient

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './QuizScreen.css'
-import { submitAnswer } from '../services/spotify'
+import { submitAnswer, searchSongSuggestions, searchArtistSuggestions } from '../services/spotify'
 
 function QuizScreen({ quizData, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -13,7 +13,11 @@ function QuizScreen({ quizData, onComplete }) {
   const [allResults, setAllResults] = useState([])
   const [score, setScore] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [songSuggestions, setSongSuggestions] = useState([])
+  const [artistSuggestions, setArtistSuggestions] = useState([])
   const embedControllerRef = useRef(null)
+  const songSearchTimeout = useRef(null)
+  const artistSearchTimeout = useRef(null)
 
   const currentSong = quizData.songs[currentIndex]
   const progress = ((currentIndex + 1) / quizData.songs.length) * 100
@@ -64,6 +68,9 @@ function QuizScreen({ quizData, onComplete }) {
         }
         embedControllerRef.current = null
       }
+      // Clear search timeouts
+      if (songSearchTimeout.current) clearTimeout(songSearchTimeout.current)
+      if (artistSearchTimeout.current) clearTimeout(artistSearchTimeout.current)
     }
   }, [currentSong.spotify_id])
 
@@ -73,6 +80,52 @@ function QuizScreen({ quizData, onComplete }) {
       embedControllerRef.current.togglePlay()
     } else {
       console.warn('Embed controller not ready yet')
+    }
+  }
+
+  // Debounced search for song suggestions
+  const handleNameChange = (e) => {
+    const value = e.target.value
+    setNameGuess(value)
+
+    if (songSearchTimeout.current) {
+      clearTimeout(songSearchTimeout.current)
+    }
+
+    if (value.length >= 2) {
+      songSearchTimeout.current = setTimeout(async () => {
+        try {
+          const suggestions = await searchSongSuggestions(value)
+          setSongSuggestions(suggestions)
+        } catch (err) {
+          console.warn('Error fetching song suggestions:', err)
+        }
+      }, 300)
+    } else {
+      setSongSuggestions([])
+    }
+  }
+
+  // Debounced search for artist suggestions
+  const handleArtistChange = (e) => {
+    const value = e.target.value
+    setArtistGuess(value)
+
+    if (artistSearchTimeout.current) {
+      clearTimeout(artistSearchTimeout.current)
+    }
+
+    if (value.length >= 2) {
+      artistSearchTimeout.current = setTimeout(async () => {
+        try {
+          const suggestions = await searchArtistSuggestions(value)
+          setArtistSuggestions(suggestions)
+        } catch (err) {
+          console.warn('Error fetching artist suggestions:', err)
+        }
+      }, 300)
+    } else {
+      setArtistSuggestions([])
     }
   }
 
@@ -112,6 +165,8 @@ function QuizScreen({ quizData, onComplete }) {
       setShowResult(false)
       setCurrentResult(null)
       setIsPlaying(false)
+      setSongSuggestions([])
+      setArtistSuggestions([])
     } else {
       onComplete(allResults, score)
     }
@@ -185,9 +240,16 @@ function QuizScreen({ quizData, onComplete }) {
                 type="text"
                 placeholder="e.g., Bohemian Rhapsody"
                 value={nameGuess}
-                onChange={(e) => setNameGuess(e.target.value)}
+                onChange={handleNameChange}
                 disabled={loading}
+                list="song-suggestions"
+                autoComplete="off"
               />
+              <datalist id="song-suggestions">
+                {songSuggestions.map((suggestion, idx) => (
+                  <option key={idx} value={suggestion} />
+                ))}
+              </datalist>
             </div>
 
             <div className="input-group">
@@ -196,9 +258,16 @@ function QuizScreen({ quizData, onComplete }) {
                 type="text"
                 placeholder="e.g., Queen"
                 value={artistGuess}
-                onChange={(e) => setArtistGuess(e.target.value)}
+                onChange={handleArtistChange}
                 disabled={loading}
+                list="artist-suggestions"
+                autoComplete="off"
               />
+              <datalist id="artist-suggestions">
+                {artistSuggestions.map((suggestion, idx) => (
+                  <option key={idx} value={suggestion} />
+                ))}
+              </datalist>
             </div>
 
             <button
