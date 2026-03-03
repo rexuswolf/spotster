@@ -1,0 +1,321 @@
+.quiz-screen {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar {
+  position: relative;
+  height: 40px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  color: #333;
+  z-index: 1;
+}
+
+.score-display {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.score-display h2 {
+  margin: 0;
+  color: #667eea;
+  font-size: 2rem;
+}
+
+.song-card {
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.album-cover {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.spotify-player-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+#embed-iframe {
+  position: absolute !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  width: 100% !important;
+  height: 152px !important;
+  pointer-events: none !important;
+}
+
+#embed-iframe iframe {
+  opacity: 0 !important;
+}
+
+.player-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  z-index: 10;
+}
+
+.hint-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  text-align: center;
+}
+
+.play-button-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-play-button {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(29, 185, 84, 0.5);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+/* Create multiple pulsing rings */
+.custom-play-button::before,
+.custom-play-button::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid #1db954;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-play-button.playing::before {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.custom-play-button.playing::after {
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    width: 80px;
+    height: 80px;
+    opacity: 0.8;
+  }
+  100% {
+    width: 150px;
+    height: 150px;
+    opacity: 0;
+  }
+}
+
+
+.custom-play-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(29, 185, 84, 0.7);
+}
+
+.custom-play-button:active {
+  transform: scale(0.95);
+}
+
+.custom-play-button svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.playback-hint {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-revealed {
+  width: 100%;
+  padding: 1rem;
+}
+
+.guess-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.input-group.required label::after {
+  content: " *";
+  color: #e74c3c;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.submit-btn {
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result-display {
+  text-align: center;
+}
+
+.score-earned {
+  color: #27ae60;
+  font-size: 2.5rem;
+  margin: 0 0 1.5rem 0;
+  animation: scorePopIn 0.5s ease-out;
+}
+
+@keyframes scorePopIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.correct-answers {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.answer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.answer-item .label {
+  font-weight: 600;
+  color: #666;
+}
+
+.answer-item .value {
+  color: #333;
+  font-weight: 500;
+}
+
+.answer-item.correct {
+  background: #d4edda;
+  border: 2px solid #28a745;
+}
+
+.answer-item.incorrect {
+  background: #f8d7da;
+  border: 2px solid #dc3545;
+}
+
+.next-btn {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.next-btn:hover {
+  transform: scale(1.05);
+}

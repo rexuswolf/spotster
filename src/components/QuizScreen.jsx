@@ -1,0 +1,272 @@
+import { useState, useEffect, useRef } from 'react'
+import './QuizScreen.css'
+import { submitAnswer } from '../services/spotify'
+
+function QuizScreen({ quizData, onComplete }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [yearGuess, setYearGuess] = useState('')
+  const [nameGuess, setNameGuess] = useState('')
+  const [artistGuess, setArtistGuess] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showResult, setShowResult] = useState(false)
+  const [currentResult, setCurrentResult] = useState(null)
+  const [allResults, setAllResults] = useState([])
+  const [score, setScore] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const embedControllerRef = useRef(null)
+
+  const currentSong = quizData.songs[currentIndex]
+  const progress = ((currentIndex + 1) / quizData.songs.length) * 100
+
+  // Initialize Spotify iframe API
+  useEffect(() => {
+    const initSpotifyEmbed = (IFrameAPI) => {
+      const element = document.getElementById('embed-iframe')
+      if (!element) return
+
+      const options = {
+        width: '0',
+        height: '0',
+        uri: `spotify:track:${currentSong.spotify_id}`
+      }
+
+      const callback = (EmbedController) => {
+        console.log('Embed controller ready for track:', currentSong.spotify_id)
+        embedControllerRef.current = EmbedController
+
+        EmbedController.addListener('ready', () => {
+          console.log('Track ready, starting playback')
+          EmbedController.play()
+        })
+
+        EmbedController.addListener('playback_update', (e) => {
+          setIsPlaying(!e.data.isPaused)
+        })
+      }
+
+      IFrameAPI.createController(element, options, callback)
+    }
+
+    if (window.IFrameAPI) {
+      initSpotifyEmbed(window.IFrameAPI)
+    } else {
+      window.onSpotifyIframeApiReady = (IFrameAPI) => {
+        initSpotifyEmbed(IFrameAPI)
+      }
+    }
+
+    return () => {
+      if (embedControllerRef.current) {
+        try {
+          embedControllerRef.current.destroy()
+        } catch (err) {
+          console.warn('Error destroying controller:', err)
+        }
+        embedControllerRef.current = null
+      }
+    }
+  }, [currentSong.spotify_id])
+
+  const togglePlayPause = () => {
+    if (embedControllerRef.current) {
+      console.log('Toggling play/pause')
+      embedControllerRef.current.togglePlay()
+    } else {
+      console.warn('Embed controller not ready yet')
+    }
+  }
+
+  const handleSubmit = () => {
+    if (!yearGuess) {
+      alert('Please enter a year guess!')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const result = submitAnswer(
+        quizData.quiz_id,
+        currentIndex,
+        yearGuess,
+        nameGuess,
+        artistGuess,
+        currentSong
+      )
+
+      setCurrentResult(result)
+      setShowResult(true)
+      setScore(score + result.score)
+      setAllResults([...allResults, result])
+    } catch (err) {
+      alert('Error submitting answer: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentIndex < quizData.songs.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+      setYearGuess('')
+      setNameGuess('')
+      setArtistGuess('')
+      setShowResult(false)
+      setCurrentResult(null)
+      setIsPlaying(false)
+    } else {
+      onComplete(allResults, score)
+    }
+  }
+
+  return (
+    <div className="quiz-screen">
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+        <span className="progress-text">
+          Song {currentIndex + 1} of {quizData.songs.length}
+        </span>
+      </div>
+
+      <div className="score-display">
+        <h2>Score: {score}</h2>
+      </div>
+
+      <div className="song-card">
+        <div className="spotify-player-container">
+          <div id="embed-iframe"></div>
+          {!showResult ? (
+            <div className="player-controls">
+              <p className="hint-text">🎵 Listen and guess!</p>
+              <div className="play-button-wrapper">
+                <button
+                  className={`custom-play-button ${isPlaying ? 'playing' : ''}`}
+                  onClick={togglePlayPause}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                  ) : (
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="playback-hint">{isPlaying ? 'Playing...' : 'Paused'}</p>
+            </div>
+          ) : (
+            <div className="player-revealed">
+              <p style={{ textAlign: 'center', color: 'white', marginBottom: '1rem' }}>
+                🎵 Now playing: {currentSong.name} - {currentSong.artist}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {!showResult ? (
+          <div className="guess-form">
+            <div className="input-group required">
+              <label>Release Year *</label>
+              <input
+                type="number"
+                placeholder="e.g., 1975"
+                value={yearGuess}
+                onChange={(e) => setYearGuess(e.target.value)}
+                disabled={loading}
+                min="1900"
+                max="2024"
+              />
+            </div>
+
+            <div className="input-group">
+              <label>Song Name (optional - bonus points)</label>
+              <input
+                type="text"
+                placeholder="e.g., Bohemian Rhapsody"
+                value={nameGuess}
+                onChange={(e) => setNameGuess(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="input-group">
+              <label>Artist (optional - bonus points)</label>
+              <input
+                type="text"
+                placeholder="e.g., Queen"
+                value={artistGuess}
+                onChange={(e) => setArtistGuess(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <button
+              className="submit-btn"
+              onClick={handleSubmit}
+              disabled={loading || !yearGuess}
+            >
+              {loading ? 'Submitting...' : 'Submit Answer ✓'}
+            </button>
+          </div>
+        ) : (
+          <div className="result-display">
+            <h3 className="score-earned">+{currentResult.score} points!</h3>
+
+            <div className="correct-answers">
+              <div className={`answer-item ${currentResult.correct_flags.year ? 'correct' : 'incorrect'}`}>
+                <span className="label">Year:</span>
+                <span className="value">
+                  {yearGuess} → {currentResult.correct.year}
+                  {currentResult.correct_flags.year && ' ✓'}
+                </span>
+              </div>
+
+              {nameGuess && (
+                <div className={`answer-item ${currentResult.correct_flags.name ? 'correct' : 'incorrect'}`}>
+                  <span className="label">Name:</span>
+                  <span className="value">
+                    {nameGuess} → {currentResult.correct.name}
+                    {currentResult.correct_flags.name && ' ✓'}
+                  </span>
+                </div>
+              )}
+
+              {artistGuess && (
+                <div className={`answer-item ${currentResult.correct_flags.artist ? 'correct' : 'incorrect'}`}>
+                  <span className="label">Artist:</span>
+                  <span className="value">
+                    {artistGuess} → {currentResult.correct.artist}
+                    {currentResult.correct_flags.artist && ' ✓'}
+                  </span>
+                </div>
+              )}
+
+              {!nameGuess && (
+                <div className="answer-item">
+                  <span className="label">Name:</span>
+                  <span className="value">{currentResult.correct.name}</span>
+                </div>
+              )}
+
+              {!artistGuess && (
+                <div className="answer-item">
+                  <span className="label">Artist:</span>
+                  <span className="value">{currentResult.correct.artist}</span>
+                </div>
+              )}
+            </div>
+
+            <button className="next-btn" onClick={handleNext}>
+              {currentIndex < quizData.songs.length - 1 ? 'Next Song →' : 'View Results 🏆'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default QuizScreen

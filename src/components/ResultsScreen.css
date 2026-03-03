@@ -1,0 +1,128 @@
+.results-screen {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.final-score {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.final-score h2 {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+}
+
+.score-big {
+  font-size: 5rem;
+  font-weight: 800;
+  color: #667eea;
+  line-height: 1;
+  margin: 0.5rem 0;
+}
+
+.score-detail {
+  font-size: 1.1rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.results-summary h3 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.results-list {
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 2rem;
+}
+
+.result-item {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #667eea;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.result-number {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.result-score {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 1.1rem;
+}
+
+.result-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-song-info {
+  color: #333;
+  line-height: 1.6;
+}
+
+.result-song-info strong {
+  font-size: 1.1rem;
+}
+
+.result-song-info .by {
+  color: #999;
+  margin: 0 0.3rem;
+}
+
+.result-song-info .year {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.result-checks {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.check {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  background: #d4edda;
+  color: #28a745;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.play-again-btn {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.play-again-btn:hover {
+  transform: scale(1.05);
+}
