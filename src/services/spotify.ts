@@ -132,13 +132,30 @@ class SpotifyClient {
    */
   private cleanSongName(name: string): string {
     const patterns = [
-      /\s*-\s*remaster(?:ed)?.*$/i,
-      /\s*-\s*remix.*$/i,
-      /\s*-\s*live.*$/i,
-      /\s*-\s*demo.*$/i,
-      /\s*-\s*acoustic.*$/i,
-      /\s*-\s*\d{4}\s*remaster.*$/i,
-      /\s*\(remaster(?:ed)?\).*$/i
+      // Remove anything after " - " that contains these keywords
+      /\s*-\s*.*?remaster(?:ed)?.*$/i,
+      /\s*-\s*.*?remix.*$/i,
+      /\s*-\s*.*?live.*$/i,
+      /\s*-\s*.*?demo.*$/i,
+      /\s*-\s*.*?acoustic.*$/i,
+      /\s*-\s*.*?edit.*$/i,
+      /\s*-\s*.*?version.*$/i,
+      /\s*-\s*\d{4}.*$/i, // Remove years like "- 1997", "- 2015 Remaster"
+
+      // Remove anything in parentheses that contains these keywords
+      /\s*\(.*?remaster(?:ed)?.*?\).*$/i,
+      /\s*\(.*?remix.*?\).*$/i,
+      /\s*\(.*?live.*?\).*$/i,
+      /\s*\(.*?demo.*?\).*$/i,
+      /\s*\(.*?acoustic.*?\).*$/i,
+      /\s*\(.*?edit.*?\).*$/i,
+      /\s*\(.*?version.*?\).*$/i,
+      /\s*\(\d{4}.*?\).*$/i, // Remove (1997), (2015 Remaster), etc.
+
+      // Remove anything in brackets
+      /\s*\[.*?remaster(?:ed)?.*?\].*$/i,
+      /\s*\[.*?remix.*?\].*$/i,
+      /\s*\[.*?live.*?\].*$/i
     ]
 
     let cleaned = name
@@ -382,7 +399,8 @@ class SpotifyClient {
 
     // Name scoring
     if (nameGuess) {
-      const nameLower = nameGuess.toLowerCase()
+      // Clean both the guess and correct name for fair comparison
+      const nameLower = this.cleanSongName(nameGuess).toLowerCase()
       const correctNameLower = correctSong.name.toLowerCase()
       if (nameLower === correctNameLower) {
         score += 50
@@ -397,8 +415,8 @@ class SpotifyClient {
 
     // Artist scoring
     if (artistGuess) {
-      const artistLower = artistGuess.toLowerCase()
-      const correctArtistLower = correctSong.artist.toLowerCase()
+      const artistLower = artistGuess.toLowerCase().trim()
+      const correctArtistLower = correctSong.artist.toLowerCase().trim()
       if (artistLower === correctArtistLower) {
         score += 50
         flags.artist = true
