@@ -3,9 +3,7 @@ import './StartScreen.css'
 import { startQuiz } from '../services/spotify'
 
 function StartScreen({ onStart }) {
-  const [mode, setMode] = useState('random')
   const [count, setCount] = useState(5)
-  const [customSongs, setCustomSongs] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedGenres, setSelectedGenres] = useState(['pop', 'rock'])
@@ -40,31 +38,14 @@ function StartScreen({ onStart }) {
     setError('')
 
     try {
-      let quizData
-
-      if (mode === 'random') {
-        quizData = await startQuiz('random', count, {
-          genres: selectedGenres,
-          yearStart,
-          yearEnd
-        })
-      } else {
-        const songNames = customSongs
-          .split('\n')
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
-
-        if (songNames.length === 0) {
-          setError('Please enter at least one song')
-          setLoading(false)
-          return
-        }
-
-        quizData = await startQuiz('custom', songNames)
-      }
+      const quizData = await startQuiz('random', count, {
+        genres: selectedGenres,
+        yearStart,
+        yearEnd
+      })
 
       if (!quizData.songs || quizData.songs.length === 0) {
-        setError('No songs found. Try different settings or custom mode.')
+        setError('No songs found. Try different settings.')
         setLoading(false)
         return
       }
@@ -79,94 +60,60 @@ function StartScreen({ onStart }) {
 
   return (
     <div className="start-screen">
-      <div className="mode-selector">
-        <h2>Choose Game Mode</h2>
-        <div className="mode-buttons">
-          <button
-            className={`mode-btn ${mode === 'random' ? 'active' : ''}`}
-            onClick={() => setMode('random')}
-          >
-            🎲 Random Songs
-          </button>
-          <button
-            className={`mode-btn ${mode === 'custom' ? 'active' : ''}`}
-            onClick={() => setMode('custom')}
-          >
-            📝 Custom Playlist
-          </button>
+      <div className="options">
+        <label>
+          Number of songs:
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={count}
+            onChange={(e) => setCount(parseInt(e.target.value))}
+          />
+        </label>
+
+        <div className="genre-selector">
+          <label>Select Genres (at least 1):</label>
+          <div className="genre-chips">
+            {availableGenres.map(genre => (
+              <button
+                key={genre.value}
+                className={`genre-chip ${selectedGenres.includes(genre.value) ? 'selected' : ''}`}
+                onClick={() => toggleGenre(genre.value)}
+                type="button"
+              >
+                {genre.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="year-range">
+          <label>Year Range:</label>
+          <div className="year-inputs">
+            <div className="year-input-group">
+              <span>From:</span>
+              <input
+                type="number"
+                min="1950"
+                max={yearEnd}
+                value={yearStart}
+                onChange={(e) => setYearStart(parseInt(e.target.value))}
+              />
+            </div>
+            <div className="year-input-group">
+              <span>To:</span>
+              <input
+                type="number"
+                min={yearStart}
+                max="2024"
+                value={yearEnd}
+                onChange={(e) => setYearEnd(parseInt(e.target.value))}
+              />
+            </div>
+          </div>
         </div>
       </div>
-
-      {mode === 'random' && (
-        <div className="options">
-          <label>
-            Number of songs:
-            <input
-              type="number"
-              min="1"
-              max="20"
-              value={count}
-              onChange={(e) => setCount(parseInt(e.target.value))}
-            />
-          </label>
-
-          <div className="genre-selector">
-            <label>Select Genres (at least 1):</label>
-            <div className="genre-chips">
-              {availableGenres.map(genre => (
-                <button
-                  key={genre.value}
-                  className={`genre-chip ${selectedGenres.includes(genre.value) ? 'selected' : ''}`}
-                  onClick={() => toggleGenre(genre.value)}
-                  type="button"
-                >
-                  {genre.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="year-range">
-            <label>Year Range:</label>
-            <div className="year-inputs">
-              <div className="year-input-group">
-                <span>From:</span>
-                <input
-                  type="number"
-                  min="1950"
-                  max={yearEnd}
-                  value={yearStart}
-                  onChange={(e) => setYearStart(parseInt(e.target.value))}
-                />
-              </div>
-              <div className="year-input-group">
-                <span>To:</span>
-                <input
-                  type="number"
-                  min={yearStart}
-                  max="2024"
-                  value={yearEnd}
-                  onChange={(e) => setYearEnd(parseInt(e.target.value))}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {mode === 'custom' && (
-        <div className="options">
-          <label>
-            Enter song names (one per line):
-            <textarea
-              rows="10"
-              placeholder="Bohemian Rhapsody&#10;Stairway to Heaven&#10;Imagine"
-              value={customSongs}
-              onChange={(e) => setCustomSongs(e.target.value)}
-            />
-          </label>
-        </div>
-      )}
 
       {error && <div className="error">{error}</div>}
 
