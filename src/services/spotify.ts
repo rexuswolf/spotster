@@ -220,9 +220,13 @@ class SpotifyClient {
 
     if (!data.tracks?.items) return []
 
-    // Get unique song names
+    // Get unique song names with artist
     const suggestions = data.tracks.items
-      .map(track => this.cleanSongName(track.name))
+      .map(track => {
+        const songName = this.cleanSongName(track.name)
+        const artistName = track.artists.map(a => a.name).join(', ')
+        return `${songName} - ${artistName}`
+      })
       .filter((name, index, self) => self.indexOf(name) === index)
       .slice(0, 10)
 
