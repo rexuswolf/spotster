@@ -22,7 +22,7 @@ function QuizScreen({ quizData, onComplete }) {
   const currentSong = quizData.songs[currentIndex]
   const progress = ((currentIndex + 1) / quizData.songs.length) * 100
 
-  // Initialize Spotify iframe API
+  // Initialize Spotify iframe API once on mount
   useEffect(() => {
     const initSpotifyEmbed = (IFrameAPI) => {
       const element = document.getElementById('embed-iframe')
@@ -31,11 +31,11 @@ function QuizScreen({ quizData, onComplete }) {
       const options = {
         width: '0',
         height: '0',
-        uri: `spotify:track:${currentSong.spotify_id}`
+        uri: `spotify:track:${quizData.songs[0].spotify_id}`
       }
 
       const callback = (EmbedController) => {
-        console.log('Embed controller ready for track:', currentSong.spotify_id)
+        console.log('Embed controller ready')
         embedControllerRef.current = EmbedController
 
         EmbedController.addListener('ready', () => {
@@ -72,7 +72,15 @@ function QuizScreen({ quizData, onComplete }) {
       if (songSearchTimeout.current) clearTimeout(songSearchTimeout.current)
       if (artistSearchTimeout.current) clearTimeout(artistSearchTimeout.current)
     }
-  }, [currentSong.spotify_id])
+  }, []) // Empty deps - only initialize once
+
+  // Load new track when song changes
+  useEffect(() => {
+    if (embedControllerRef.current && currentIndex > 0) {
+      console.log('Loading new track:', currentSong.spotify_id)
+      embedControllerRef.current.loadUri(`spotify:track:${currentSong.spotify_id}`)
+    }
+  }, [currentIndex, currentSong.spotify_id])
 
   const togglePlayPause = () => {
     if (embedControllerRef.current) {
