@@ -86,8 +86,6 @@ function QuizScreen({ quizData, onComplete }) {
 
     try {
       const result = submitAnswer(
-        quizData.quiz_id,
-        currentIndex,
         yearGuess,
         nameGuess,
         artistGuess,
