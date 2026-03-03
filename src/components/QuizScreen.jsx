@@ -15,9 +15,13 @@ function QuizScreen({ quizData, onComplete, onBack }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [songSuggestions, setSongSuggestions] = useState([])
   const [artistSuggestions, setArtistSuggestions] = useState([])
+  const [showSongDropdown, setShowSongDropdown] = useState(false)
+  const [showArtistDropdown, setShowArtistDropdown] = useState(false)
   const embedControllerRef = useRef(null)
   const songSearchTimeout = useRef(null)
   const artistSearchTimeout = useRef(null)
+  const songInputRef = useRef(null)
+  const artistInputRef = useRef(null)
 
   const currentSong = quizData.songs[currentIndex]
   const progress = ((currentIndex + 1) / quizData.songs.length) * 100
@@ -35,11 +39,9 @@ function QuizScreen({ quizData, onComplete, onBack }) {
       }
 
       const callback = (EmbedController) => {
-        console.log('Embed controller ready')
         embedControllerRef.current = EmbedController
 
         EmbedController.addListener('ready', () => {
-          console.log('Track ready, starting playback')
           EmbedController.play()
         })
 
@@ -77,17 +79,14 @@ function QuizScreen({ quizData, onComplete, onBack }) {
   // Load new track when song changes
   useEffect(() => {
     if (embedControllerRef.current && currentIndex > 0) {
-      console.log('Loading new track:', currentSong.spotify_id)
       embedControllerRef.current.loadUri(`spotify:track:${currentSong.spotify_id}`)
     }
   }, [currentIndex, currentSong.spotify_id])
 
   const togglePlayPause = () => {
     if (embedControllerRef.current) {
-      console.log('Toggling play/pause')
       embedControllerRef.current.togglePlay()
     } else {
-      console.warn('Embed controller not ready yet')
     }
   }
 
@@ -105,13 +104,21 @@ function QuizScreen({ quizData, onComplete, onBack }) {
         try {
           const suggestions = await searchSongSuggestions(value)
           setSongSuggestions(suggestions)
+          setShowSongDropdown(suggestions.length > 0)
         } catch (err) {
           console.warn('Error fetching song suggestions:', err)
         }
       }, 300)
     } else {
       setSongSuggestions([])
+      setShowSongDropdown(false)
     }
+  }
+
+  const handleSongSelect = (suggestion) => {
+    setNameGuess(suggestion)
+    setShowSongDropdown(false)
+    setSongSuggestions([])
   }
 
   // Debounced search for artist suggestions
@@ -128,13 +135,21 @@ function QuizScreen({ quizData, onComplete, onBack }) {
         try {
           const suggestions = await searchArtistSuggestions(value)
           setArtistSuggestions(suggestions)
+          setShowArtistDropdown(suggestions.length > 0)
         } catch (err) {
           console.warn('Error fetching artist suggestions:', err)
         }
       }, 300)
     } else {
       setArtistSuggestions([])
+      setShowArtistDropdown(false)
     }
+  }
+
+  const handleArtistSelect = (suggestion) => {
+    setArtistGuess(suggestion)
+    setShowArtistDropdown(false)
+    setArtistSuggestions([])
   }
 
   const handleSubmit = () => {
@@ -248,40 +263,60 @@ function QuizScreen({ quizData, onComplete, onBack }) {
               />
             </div>
 
-            <div className="input-group">
+            <div className="input-group autocomplete-wrapper">
               <label>Song Name (optional - bonus points)</label>
               <input
+                ref={songInputRef}
                 type="text"
                 placeholder="e.g., Bohemian Rhapsody"
                 value={nameGuess}
                 onChange={handleNameChange}
+                onFocus={() => songSuggestions.length > 0 && setShowSongDropdown(true)}
+                onBlur={() => setTimeout(() => setShowSongDropdown(false), 200)}
                 disabled={loading}
-                list="song-suggestions"
                 autoComplete="off"
               />
-              <datalist id="song-suggestions">
-                {songSuggestions.map((suggestion, idx) => (
-                  <option key={idx} value={suggestion} />
-                ))}
-              </datalist>
+              {showSongDropdown && (
+                <div className="autocomplete-dropdown">
+                  {songSuggestions.map((suggestion, idx) => (
+                    <div
+                      key={idx}
+                      className="autocomplete-item"
+                      onMouseDown={() => handleSongSelect(suggestion)}
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="input-group">
+            <div className="input-group autocomplete-wrapper">
               <label>Artist (optional - bonus points)</label>
               <input
+                ref={artistInputRef}
                 type="text"
                 placeholder="e.g., Queen"
                 value={artistGuess}
                 onChange={handleArtistChange}
+                onFocus={() => artistSuggestions.length > 0 && setShowArtistDropdown(true)}
+                onBlur={() => setTimeout(() => setShowArtistDropdown(false), 200)}
                 disabled={loading}
-                list="artist-suggestions"
                 autoComplete="off"
               />
-              <datalist id="artist-suggestions">
-                {artistSuggestions.map((suggestion, idx) => (
-                  <option key={idx} value={suggestion} />
-                ))}
-              </datalist>
+              {showArtistDropdown && (
+                <div className="autocomplete-dropdown">
+                  {artistSuggestions.map((suggestion, idx) => (
+                    <div
+                      key={idx}
+                      className="autocomplete-item"
+                      onMouseDown={() => handleArtistSelect(suggestion)}
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button

@@ -128,6 +128,17 @@ class SpotifyClient {
   }
 
   /**
+   * Normalize text by removing accents and special characters for fuzzy matching
+   */
+  private normalizeText(text: string): string {
+    return text
+      .normalize('NFD') // Decompose characters with accents
+      .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
+      .toLowerCase()
+      .trim()
+  }
+
+  /**
    * Clean song name by removing remaster/remix/live suffixes
    */
   private cleanSongName(name: string): string {
@@ -233,14 +244,21 @@ class SpotifyClient {
   async searchSongSuggestions(query: string): Promise<string[]> {
     if (!query || query.length < 2) return []
 
-    const data = await this.searchSong(query)
+    // Normalize the query for better fuzzy matching
+    const normalizedQuery = this.normalizeText(query)
+    const data = await this.searchSong(query) // Use original query for better Spotify results
 
     if (!data.tracks?.items) return []
 
-    // Get unique song names (no artist to avoid giving away the answer)
+    // Filter and get unique song names that match the normalized query
     const suggestions = data.tracks.items
       .map(track => this.cleanSongName(track.name))
-      .filter((name, index, self) => self.indexOf(name) === index)
+      .filter((name, index, self) => {
+        // Only include if normalized name contains normalized query
+        const normalizedName = this.normalizeText(name)
+
+        return normalizedName.includes(normalizedQuery) && self.indexOf(name) === index
+      })
       .slice(0, 10)
 
     return suggestions
@@ -254,8 +272,11 @@ class SpotifyClient {
 
     const token = await this.getAccessToken()
 
+    // Normalize the query for better fuzzy matching
+    const normalizedQuery = this.normalizeText(query)
+
     const response = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=10`,
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=20`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -267,7 +288,11 @@ class SpotifyClient {
 
     if (!data.artists?.items) return []
 
-    return data.artists.items.map((artist: { name: string }) => artist.name)
+    // Filter artists whose normalized name contains the normalized query
+    return data.artists.items
+      .map((artist: { name: string }) => artist.name)
+      .filter((name: string) => this.normalizeText(name).includes(normalizedQuery))
+      .slice(0, 10)
   }
 
   /**
@@ -399,15 +424,15 @@ class SpotifyClient {
 
     // Name scoring
     if (nameGuess) {
-      // Clean both the guess and correct name for fair comparison
-      const nameLower = this.cleanSongName(nameGuess).toLowerCase()
-      const correctNameLower = correctSong.name.toLowerCase()
-      if (nameLower === correctNameLower) {
+      // Clean and normalize both the guess and correct name for fuzzy comparison
+      const nameNormalized = this.normalizeText(this.cleanSongName(nameGuess))
+      const correctNameNormalized = this.normalizeText(correctSong.name)
+      if (nameNormalized === correctNameNormalized) {
         score += 50
         flags.name = true
       } else if (
-        nameLower.includes(correctNameLower) ||
-        correctNameLower.includes(nameLower)
+        nameNormalized.includes(correctNameNormalized) ||
+        correctNameNormalized.includes(nameNormalized)
       ) {
         score += 25
       }
@@ -415,14 +440,14 @@ class SpotifyClient {
 
     // Artist scoring
     if (artistGuess) {
-      const artistLower = artistGuess.toLowerCase().trim()
-      const correctArtistLower = correctSong.artist.toLowerCase().trim()
-      if (artistLower === correctArtistLower) {
+      const artistNormalized = this.normalizeText(artistGuess)
+      const correctArtistNormalized = this.normalizeText(correctSong.artist)
+      if (artistNormalized === correctArtistNormalized) {
         score += 50
         flags.artist = true
       } else if (
-        artistLower.includes(correctArtistLower) ||
-        correctArtistLower.includes(artistLower)
+        artistNormalized.includes(correctArtistNormalized) ||
+        correctArtistNormalized.includes(artistNormalized)
       ) {
         score += 25
       }
