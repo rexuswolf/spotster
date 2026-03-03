@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import Logo from './components/Logo'
 import StartScreen from './components/StartScreen'
 import QuizScreen from './components/QuizScreen'
 import ResultsScreen from './components/ResultsScreen'
@@ -40,7 +41,10 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>🎵 Spotster Quiz</h1>
+        <div className="logo-container">
+          <Logo size={80} />
+        </div>
+        <h1>Spotster Quiz</h1>
         <p>Test your music knowledge!</p>
       </header>
 
