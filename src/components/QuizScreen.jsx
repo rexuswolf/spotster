@@ -85,13 +85,7 @@ function QuizScreen({ quizData, onComplete }) {
 
   // Debounced search for song suggestions
   const handleNameChange = (e) => {
-    let value = e.target.value
-
-    // If user selected from suggestions (contains " - "), extract just the song name
-    if (value.includes(' - ')) {
-      value = value.split(' - ')[0]
-    }
-
+    const value = e.target.value
     setNameGuess(value)
 
     if (songSearchTimeout.current) {
